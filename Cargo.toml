@@ -1,8 +1,8 @@
 [package]
 name = "besteg"
+license = "MIT"
 version = "0.1.0"
 edition = "2021"
-license = "MIT"
 
 [dependencies]
 image = "0.25.5"
