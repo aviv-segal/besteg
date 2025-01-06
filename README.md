@@ -1,0 +1,1 @@
+This project is a all in one Steganography tool I'm making to make Steganography easier to use.
