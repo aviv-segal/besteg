@@ -1,41 +1,38 @@
 use image::DynamicImage;
+use crate::{SteganographyMethod, BestegError};
+
 pub struct LSB;
 
-impl LSB {
-    pub fn encode(input: &[u8], image: Vec<u8>) -> Vec<u8> {
-        todo!()
-    }
-
-    /// Encodes a message into an image with RGBA pixels using LSB.
-    pub fn encode_rgba(image: &mut DynamicImage, message: &[u8]) -> DynamicImage{
+impl SteganographyMethod for LSB {
+    fn encode(image: &mut DynamicImage, message: &[u8]) -> Result<DynamicImage, BestegError> {
         if !LSB::can_store_message_rgba(image, message.len()) {
-            panic!("Message is too long to fit in the image");
+            return Err(BestegError::MessageTooLarge);
         }
+        
         let mut bits = message.iter().flat_map(|byte| (0..8).rev().map(move |i| (byte >> i) & 1));
-    
-        let mut rgba_image = image.to_rgba8(); // This gives us a mutable RgbaImage
+        let mut rgba_image = image.to_rgba8();
 
         for pixel in rgba_image.pixels_mut() {
             for channel in pixel.0.iter_mut() {
                 if let Some(bit) = bits.next() {
-                    *channel = (*channel & 0xFE) | bit; 
-                }   
+                    *channel = (*channel & 0xFE) | bit;
+                }
             }
         }
-        DynamicImage::ImageRgba8(rgba_image)
 
-        }
+        Ok(DynamicImage::ImageRgba8(rgba_image)) // Return the new image
+    }
 
-    pub fn decode_rgba(image: &DynamicImage) -> Vec<u8> {
+    fn decode(image: &DynamicImage) -> Result<Vec<u8>, BestegError> {
         let mut bits = Vec::new();
-        let rgba_image = image.to_rgba8(); 
-    
+        let rgba_image = image.to_rgba8();
+
         for pixel in rgba_image.pixels() {
             for channel in pixel.0.iter() {
-                let lsb = channel & 1;
-                bits.push(lsb);
+                bits.push(channel & 1);
             }
         }
+
         let mut bytes = Vec::new();
         for chunk in bits.chunks(8) {
             if chunk.len() == 8 {
@@ -43,16 +40,16 @@ impl LSB {
                 bytes.push(byte);
             }
         }
-        bytes
+
+        Ok(bytes)
     }
+}
+
+impl LSB {
     pub fn can_store_message_rgba(image: &DynamicImage, message_length: usize) -> bool {
         let total_pixels = image.width() as usize * image.height() as usize;
-        let total_bits = total_pixels * 4; 
-        message_length * 8 <= total_bits 
-    }
-    
-    pub fn save_image(image: DynamicImage, output_path: &str) {
-        image.save(output_path).unwrap(); // Save the modified image
+        let total_bits = total_pixels * 4; // RGBA has 4 channels per pixel
+        message_length * 8 <= total_bits
     }
 }
 
@@ -60,19 +57,16 @@ impl LSB {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use image::DynamicImage;
+
     #[test]
-    fn test_encode() {
-        let input = b"Hello, world!";
-        let mut image = image::open("/home/avivs/Desktop/besteg/example.png").unwrap();
-        let encoded_image = LSB::encode_rgba(&mut image, input);
-        let output = "/home/avivs/Desktop/besteg/output.png";
-        assert_ne!(encoded_image, image);
-        LSB::save_image(encoded_image, output);
-    }
-    #[test]
-    fn test_decode() {
-        let image = image::open("/home/avivs/Desktop/besteg/output.png").unwrap();
-        let message = LSB::decode_rgba(&image);
-        println!("Decoded message: {}", String::from_utf8_lossy(&message));
+    fn test_lsb_encode_decode() {
+        let mut image = DynamicImage::new_rgba8(10, 10).brighten(100);
+        let message = b"Hello, World!";
+        LSB::encode(&mut image, message).unwrap();
+        let decoded = LSB::decode(&image).unwrap();
+
+        assert_eq!(message.to_vec(), decoded);
     }
 }
+

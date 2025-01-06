@@ -19,7 +19,7 @@ pub enum BestegError {
 
 /// Trait for implementing different steganography methods
 pub trait SteganographyMethod {
-    fn encode(image: &mut DynamicImage, message: &[u8]) -> Result<(), BestegError>;
+    fn encode(image: &mut DynamicImage, message: &[u8]) -> Result<DynamicImage, BestegError>;
     fn decode(image: &DynamicImage) -> Result<Vec<u8>, BestegError>;
 }
 
@@ -28,7 +28,7 @@ pub struct Besteg;
 
 impl Besteg {
     /// Encodes a message into an image using the specified method
-    pub fn encode<M: SteganographyMethod>(image: &mut DynamicImage,message: &[u8],) -> Result<(), BestegError> {
+    pub fn encode<M: SteganographyMethod>(image: &mut DynamicImage,message: &[u8],) -> Result<DynamicImage, BestegError> {
         M::encode(image, message)
     }
 
