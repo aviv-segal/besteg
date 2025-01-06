@@ -28,12 +28,12 @@ pub struct Besteg;
 
 impl Besteg {
     /// Encodes a message into an image using the specified method
-    pub fn encode<M: SteganographyMethod>(image: &mut DynamicImage,message: &[u8],) -> Result<DynamicImage, BestegError> {
+    pub fn encode<M: SteganographyMethod>(image: &mut DynamicImage, message: &[u8],) -> Result<DynamicImage, BestegError> {
         M::encode(image, message)
     }
 
     /// Decodes a hidden message from an image using the specified method
-    pub fn decode<M: SteganographyMethod>(image: &DynamicImage,) -> Result<Vec<u8>, BestegError> {
+    pub fn decode<M: SteganographyMethod>(image: &DynamicImage) -> Result<Vec<u8>, BestegError> {
         M::decode(image)
     }
 }

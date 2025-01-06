@@ -8,6 +8,7 @@ impl SteganographyMethod for LSB {
         if !LSB::can_store_message_rgba(image, message.len()) {
             return Err(BestegError::MessageTooLarge);
         }
+        let message = [message, &[0]].concat();
         
         let mut bits = message.iter().flat_map(|byte| (0..8).rev().map(move |i| (byte >> i) & 1));
         let mut rgba_image = image.to_rgba8();
@@ -37,6 +38,9 @@ impl SteganographyMethod for LSB {
         for chunk in bits.chunks(8) {
             if chunk.len() == 8 {
                 let byte = chunk.iter().fold(0, |acc, &bit| (acc << 1) | bit);
+                if byte == 0 {
+                    break;
+                }
                 bytes.push(byte);
             }
         }
@@ -63,10 +67,10 @@ mod tests {
     fn test_lsb_encode_decode() {
         let mut image = DynamicImage::new_rgba8(10, 10).brighten(100);
         let message = b"Hello, World!";
-        LSB::encode(&mut image, message).unwrap();
-        let decoded = LSB::decode(&image).unwrap();
+        let encoded = LSB::encode(&mut image, message).unwrap();
+        let decoded = LSB::decode(&encoded).unwrap();
 
-        assert_eq!(message.to_vec(), decoded);
+        assert_eq!(String::from_utf8_lossy(message), String::from_utf8_lossy(&decoded));
     }
 }
 
