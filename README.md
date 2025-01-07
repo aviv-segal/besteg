@@ -2,7 +2,7 @@ This project is a all in one Steganography tool I'm making to make Steganography
 
 
 # Besteg
-Steganography is complicated, especially for non-technincal people so I wanted to create a tool that is easy to use and supports almost all of the most popular image formats
+Steganography is complicated, especially for non-technincal people so I wanted to create a tool that is easy to use and supports almost all of the most popular image formats and Steganography methods.
 
 
 ## Usage
